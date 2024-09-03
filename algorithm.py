@@ -55,7 +55,14 @@ class NeuralNetwork:
 class Algorithm:
     def __init__(self):
         self.brain = NeuralNetwork(inputs=4, layerlist=[3], outputs=1)
+        self.scores = []
 
     def get_action(self, input):
         action = self.brain.forward(input)
         return action
+    
+    def get_score(self, score):
+        self.scores.append((self.brain, score))
+
+    def next_brain(self):
+        self.brain = NeuralNetwork(inputs=4, layerlist=[3], outputs=1)
