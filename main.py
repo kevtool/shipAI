@@ -136,6 +136,8 @@ while running:
     if check_hit(player_pos):
         pygame.time.wait(500)
         update_score()
+        model.get_score(score)
+        model.next_brain()
         reset()
     
     dt = clock.tick(60) / 1000

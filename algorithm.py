@@ -63,6 +63,7 @@ class Algorithm:
     
     def get_score(self, score):
         self.scores.append((self.brain, score))
+        print(self.scores)
 
     def next_brain(self):
         self.brain = NeuralNetwork(inputs=4, layerlist=[3], outputs=1)
