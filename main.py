@@ -33,6 +33,11 @@ highscore = 0
 # ai algorithm
 model = Algorithm()
 
+# tracking direction change
+prev_action = None
+changes = 0
+
+
 def add_pipe():
     pipe = Pipe(screen.get_width(), screen.get_height())
     pipes.append(pipe)
@@ -80,6 +85,9 @@ def update_score():
     score = 0
 
 def reset():
+    global prev_action, changes
+    prev_action = None
+    changes = 0
     pipes.clear()
     player.reset_pos()
 
@@ -92,7 +100,7 @@ def check_hit(player_pos):
 
 def normalize_values(player_y, pipe_topend, pipe_bottomend, pipe_x):
     return [player_y/window_width,  pipe_topend/window_width, pipe_bottomend/window_width, pipe_x/window_height]
-            
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -117,6 +125,12 @@ while running:
         player.update_pos('up', dt)
     else:
         player.update_pos('down', dt)
+
+    if prev_action != None:
+        if prev_action != action:
+            changes += 1
+        
+    prev_action = action
     
     player_pos.y = player.pos
     pygame.draw.circle(screen, "red", player_pos, player.radius)
@@ -136,7 +150,7 @@ while running:
     if check_hit(player_pos):
         pygame.time.wait(500)
         update_score()
-        model.get_score(score)
+        model.get_score(score, changes)
         model.next_brain()
         reset()
     

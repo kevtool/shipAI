@@ -61,8 +61,9 @@ class Algorithm:
         action = self.brain.forward(input)
         return action
     
-    def get_score(self, score):
-        self.scores.append((self.brain, score))
+    # changes: get the number of direction changes
+    def get_score(self, score, changes):
+        self.scores.append((self.brain, score, changes))
         print(self.scores)
 
     def next_brain(self):
