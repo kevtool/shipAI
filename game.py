@@ -160,12 +160,3 @@ class Game():
 
         pygame.quit()
         return scores, dir_changes
-
-game = Game()
-
-# human mode
-# game.run(10)
-
-model = Algorithm()
-scores, dir_changes = game.run(10, mode='ai', brain=model.brain)
-model.next_brain()
