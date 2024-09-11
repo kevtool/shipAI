@@ -20,7 +20,6 @@ class Game():
         # player
         self.player = Ship(self.screen.get_height())
         self.player_pos = pygame.Vector2(self.screen.get_width() / 4, self.screen.get_height() - self.player.radius)
-        self.dt = 0
 
         # pipes
         self.pipetick = 0
@@ -84,6 +83,7 @@ class Game():
         self.changes = 0
         self.pipes.clear()
         self.player.reset_pos()
+        self.pipetick = 0
 
     def check_hit(self, player_pos):
         for i, pipe in enumerate(self.pipes):
@@ -98,6 +98,8 @@ class Game():
     def run(self, iters, mode='human', brain=None):
         scores = []
         dir_changes = []
+
+        dt = 0
 
         for _ in range(iters):
             while True:
@@ -121,9 +123,9 @@ class Game():
                     raise Exception("Error: Invalid mode")
 
                 if action:
-                    self.player.update_pos('up', self.dt)
+                    self.player.update_pos('up', dt)
                 else:
-                    self.player.update_pos('down', self.dt)
+                    self.player.update_pos('down', dt)
 
                 if self.prev_action != None:
                     if self.prev_action != action:
@@ -156,7 +158,7 @@ class Game():
                     self.reset()
                     break
                 
-                self.dt = self.clock.tick(60) / 1000
+                dt = self.clock.tick(60) / 1000
 
         pygame.quit()
         return scores, dir_changes

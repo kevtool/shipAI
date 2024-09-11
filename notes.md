@@ -1,6 +1,6 @@
 September 10 update:
 Reorganized code to make it more generalized and usable.
-BUG: when pygame is run, the first iteration of the game has delayed times for pipe entries, which causes the first iteration to always have a higher score.
+Bug fixed: when pygame is run, the first iteration of the game has delayed times for pipe entries, which causes the first iteration to always have a higher score.
 
 ________
 #### Summary
