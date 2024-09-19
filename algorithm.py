@@ -24,24 +24,50 @@ class ReLu:
         return np.maximum(input, 0)
 
 class NeuralNetwork:
-    def __init__(self, inputs, layerlist, outputs):
+    def __init__(self, inputs, outputs):
+        self.inputs = inputs
+        self.outputs = outputs
         self.activation = ReLu()
-        self.layers = self.create_layers(inputs, layerlist, outputs)
 
-    def create_layers(self, inputs, layerlist, outputs):
-        layers = []
+    def create_layers(self, layerlist):
+        self.layers = []
         if len(layerlist) == 0:
-            layers.append(Layer.randomWeights(inputs, outputs))
-            return layers
+            self.layers.append(Layer.randomWeights(self.inputs, self.outputs))
+            return
         
-        layers.append(Layer.randomWeights(inputs, layerlist[0]))
+        self.layers.append(Layer.randomWeights(self.inputs, layerlist[0]))
         for i in range(0, len(layerlist) - 1):
-            layers.append(Layer.randomWeights(layerlist[i], layerlist[i + 1]))
-        layers.append(Layer.randomWeights(layerlist[-1], outputs))
-        return layers
+            self.layers.append(Layer.randomWeights(layerlist[i], layerlist[i + 1]))
+        self.layers.append(Layer.randomWeights(layerlist[-1], self.outputs))
     
-    def import_layers():
-        pass
+    def mutate_layers(self, layers):
+        self.layers = layers
+        for layer in self.layers:
+            shape = layer.weights.shape
+            mutation = np.random.uniform(-0.05, 0.05, shape)
+            layer.weights += (layer.weights * mutation)
+
+            shape = layer.biases.shape
+            mutation = np.random.uniform(-0.05, 0.05, shape)
+            layer.biases += (layer.biases * mutation)
+
+    @classmethod
+    def create(cls, inputs, layerlist, outputs):
+        obj = cls(inputs, outputs)
+        obj.create_layers(layerlist)
+        return obj
+
+    @classmethod
+    def mutate(cls, nn):
+        obj = cls(nn.inputs, nn.outputs)
+        obj.mutate_layers(nn.layers)
+        return obj
+
+    @classmethod
+    def copy(cls, nn):
+        obj = cls(nn.inputs, nn.outputs)
+        obj.layers = nn.layers
+        return obj
 
     def forward(self, input):
         x = input
@@ -53,18 +79,29 @@ class NeuralNetwork:
         return x
 
 class Algorithm:
-    def __init__(self):
-        self.brain = NeuralNetwork(inputs=4, layerlist=[3], outputs=1)
+    def __init__(self, brains_per_gen):
+        self.brains = [NeuralNetwork.create(inputs=4, layerlist=[3], outputs=1) for _ in range(brains_per_gen)]
         self.scores = []
-
-    def get_action(self, input):
-        action = self.brain.forward(input)
-        return action
     
     # changes: get the number of direction changes
-    def get_score(self, score, changes):
-        self.scores.append((self.brain, score, changes))
+    def record_score(self, index, score, changes):
+        self.scores.append((index, score, changes))
         print(self.scores)
 
-    def next_brain(self):
-        self.brain = NeuralNetwork(inputs=4, layerlist=[3], outputs=1)
+    def create_new_gen(self, num_of_descendants):
+        INDEX = 0
+        BRAIN = 1
+
+        # sort by second element (score)
+        self.scores = sorted(self.scores, key=lambda x: (x[0], x[1]))
+        qualified_brains = sum(1 for tpl in self.scores if tpl[2] == 0)
+        denom = sum(i ** -0.8 for i in range(1, qualified_brains+1))
+
+        for i in range(qualified_brains):
+            descendants = round(((i+1) ** -0.8) / denom, 1) * num_of_descendants
+            index = self.scores[i][INDEX]
+            brain_to_reproduce = self.brains[index]
+            print(index)
+            
+
+        pass

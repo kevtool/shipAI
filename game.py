@@ -151,8 +151,8 @@ class Game():
 
                 if self.check_hit(self.player_pos):
                     pygame.time.wait(500)
-                    self.update_score()
                     scores.append(self.score)
+                    self.update_score()
                     dir_changes.append(self.changes)
 
                     self.reset()
@@ -160,5 +160,4 @@ class Game():
                 
                 dt = self.clock.tick(60) / 1000
 
-        pygame.quit()
         return scores, dir_changes
