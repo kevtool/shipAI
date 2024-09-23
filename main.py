@@ -2,14 +2,15 @@ import statistics
 from game import Game
 from algorithm import Algorithm
 
-brains_per_gen = 10
+starting_brains = 10
+brains_per_gen = 12
 
 game = Game()
 
 # human mode
 # game.run(10)
 
-model = Algorithm(brains_per_gen)
+model = Algorithm(starting_brains)
 
 # for _ in range(brains_per_gen):
 #     scores, dir_changes = game.run(10, mode='ai', brain=model.brain)
@@ -21,3 +22,5 @@ for index, brain_ in enumerate(model.brains):
     scores, dir_changes = game.run(10, mode='ai', brain=brain_)
     scores, dir_changes = statistics.fmean(scores), statistics.fmean(dir_changes)
     model.record_score(index, scores, dir_changes)
+
+model.create_new_gen(brains_per_gen)

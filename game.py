@@ -92,8 +92,8 @@ class Game():
         
         return False
 
-    def normalize_values(self, player_y, pipe_topend, pipe_bottomend, pipe_x):
-        return [player_y/self.window_width,  pipe_topend/self.window_width, pipe_bottomend/self.window_width, pipe_x/self.window_height]
+    def normalize_values(self, *params):
+        return [p / self.window_width for p in params]
     
     def run(self, iters, mode='human', brain=None):
         scores = []

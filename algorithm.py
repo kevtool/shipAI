@@ -90,12 +90,13 @@ class Algorithm:
 
     def create_new_gen(self, num_of_descendants):
         INDEX = 0
-        BRAIN = 1
 
         # sort by second element (score)
         self.scores = sorted(self.scores, key=lambda x: (x[0], x[1]))
         qualified_brains = sum(1 for tpl in self.scores if tpl[2] == 0)
         denom = sum(i ** -0.8 for i in range(1, qualified_brains+1))
+
+        new_brains = []
 
         for i in range(qualified_brains):
             descendants = round(((i+1) ** -0.8) / denom, 1) * num_of_descendants
@@ -103,5 +104,11 @@ class Algorithm:
             brain_to_reproduce = self.brains[index]
             print(index)
             
+            for j in range(descendants):
+                if j == 0:
+                    new_brains.append(NeuralNetwork.copy(brain_to_reproduce.nn))
+                else:
+                    new_brains.append(NeuralNetwork.mutate(brain_to_reproduce.nn))
 
-        pass
+        assert len(new_brains) == num_of_descendants
+        self.brains = new_brains
