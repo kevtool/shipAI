@@ -19,8 +19,11 @@ model = Algorithm(starting_brains)
 #     model.next_brain()
 
 for index, brain_ in enumerate(model.brains):
+    print(brain_.layers[0].weights)
+
     scores, dir_changes = game.run(10, mode='ai', brain=brain_)
     scores, dir_changes = statistics.fmean(scores), statistics.fmean(dir_changes)
+    print(index, scores, dir_changes)
     model.record_score(index, scores, dir_changes)
 
 model.create_new_gen(brains_per_gen)

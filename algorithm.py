@@ -1,4 +1,5 @@
 import numpy as np
+from utils import argsort
 
 class Layer:
     def __init__(self, weights, biases):
@@ -86,29 +87,51 @@ class Algorithm:
     # changes: get the number of direction changes
     def record_score(self, index, score, changes):
         self.scores.append((index, score, changes))
-        print(self.scores)
 
+    # get a list of how the descendants should be distributed among qualified brains
+    def get_desc_list(self, num_of_descendants, qualified_brains):
+        denom = sum(i ** -0.8 for i in range(1, qualified_brains+1))
+
+        desc_float = [((i+1) ** -0.8) / denom * num_of_descendants for i in range(qualified_brains)]
+        desc_int = [round(((i+1) ** -0.8) / denom * num_of_descendants) for i in range(qualified_brains)]
+        desc_diff = [f - i for f, i in zip(desc_float, desc_int)]
+
+        if (sum(desc_int) < num_of_descendants):
+            desc_diff = argsort(desc_diff, reverse=True)
+            for i in range(num_of_descendants - sum(desc_int)):
+                desc_int[desc_diff[i]] += 1
+
+        if (sum(desc_int) > num_of_descendants):
+            desc_diff = argsort(desc_diff, reverse=False)
+            for i in range(sum(desc_int) - num_of_descendants):
+                desc_int[desc_diff[i]] -= 1
+
+        assert sum(desc_int) == num_of_descendants
+        return desc_int
+
+    # create a new generation of brains and replace the old ones
     def create_new_gen(self, num_of_descendants):
         INDEX = 0
 
         # sort by second element (score)
         self.scores = sorted(self.scores, key=lambda x: (x[0], x[1]))
-        qualified_brains = sum(1 for tpl in self.scores if tpl[2] == 0)
-        denom = sum(i ** -0.8 for i in range(1, qualified_brains+1))
-
+        qualified_brains = int(max(sum(1 for tpl in self.scores if tpl[2] == 0), num_of_descendants / 2))
+        desc_list = self.get_desc_list(num_of_descendants, qualified_brains)
         new_brains = []
 
-        for i in range(qualified_brains):
-            descendants = round(((i+1) ** -0.8) / denom, 1) * num_of_descendants
+        for i, descendants in enumerate(desc_list):
             index = self.scores[i][INDEX]
             brain_to_reproduce = self.brains[index]
-            print(index)
             
             for j in range(descendants):
                 if j == 0:
-                    new_brains.append(NeuralNetwork.copy(brain_to_reproduce.nn))
+                    new_brains.append(NeuralNetwork.copy(brain_to_reproduce))
                 else:
-                    new_brains.append(NeuralNetwork.mutate(brain_to_reproduce.nn))
+                    new_brains.append(NeuralNetwork.mutate(brain_to_reproduce))
 
         assert len(new_brains) == num_of_descendants
         self.brains = new_brains
+
+    def print_brains_weights(self):
+        for brain in self.brains:
+            print(brain.layers[0].weights)
