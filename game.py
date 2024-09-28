@@ -100,6 +100,7 @@ class Game():
         dir_changes = []
 
         dt = 0
+        game_speed = 60
 
         for _ in range(iters):
             while True:
@@ -158,6 +159,6 @@ class Game():
                     self.reset()
                     break
                 
-                dt = self.clock.tick(60) / 1000
+                dt = self.clock.tick(game_speed) / 1000
 
         return scores, dir_changes
