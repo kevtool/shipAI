@@ -114,8 +114,10 @@ class Algorithm:
         return desc_int
 
     # create a new generation of brains and replace the old ones
-    def create_new_gen(self, num_of_descendants):
+    def create_new_gen(self, brains_per_gen):
         INDEX = 0
+
+        num_of_descendants = int(brains_per_gen / 2)
 
         # sort by second element (score)
         self.scores = sorted(self.scores, key=lambda x: (x[1], x[2]), reverse=True)
@@ -123,24 +125,25 @@ class Algorithm:
 
         # if there are no qualified brains, create new ones with random weights
         if qualified_brains == 0:
-            self.brains = [NeuralNetwork.create(inputs=4, layerlist=[3], outputs=1) for _ in range(num_of_descendants)]
-            self.scores = []
-            return
+            new_brains = [NeuralNetwork.create(inputs=4, layerlist=[3], outputs=1) for _ in range(num_of_descendants)]
+        else:
+            desc_list = self.get_desc_list(num_of_descendants, qualified_brains)
+            new_brains = []
 
-        desc_list = self.get_desc_list(num_of_descendants, qualified_brains)
-        new_brains = []
+            for i, descendants in enumerate(desc_list):
+                index = self.scores[i][INDEX]
+                brain_to_reproduce = self.brains[index]
+                
+                for j in range(descendants):
+                    if j == 0:
+                        new_brains.append(NeuralNetwork.copy(brain_to_reproduce))
+                    else:
+                        new_brains.append(NeuralNetwork.mutate(brain_to_reproduce))
 
-        for i, descendants in enumerate(desc_list):
-            index = self.scores[i][INDEX]
-            brain_to_reproduce = self.brains[index]
-            
-            for j in range(descendants):
-                if j == 0:
-                    new_brains.append(NeuralNetwork.copy(brain_to_reproduce))
-                else:
-                    new_brains.append(NeuralNetwork.mutate(brain_to_reproduce))
+        created_brains = [NeuralNetwork.create(inputs=4, layerlist=[3], outputs=1) for _ in range(brains_per_gen - num_of_descendants)]
+        new_brains = new_brains + created_brains
 
-        assert len(new_brains) == num_of_descendants
+        assert len(new_brains) == brains_per_gen
         self.brains = new_brains
         self.scores = []
 

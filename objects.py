@@ -10,7 +10,7 @@ class Ship():
         self.momentum = 75
         self.max_velocity = 1100
 
-    def update_pos(self, dir, dt):
+    def update_pos(self, dir):
         if dir == 'up':
             self.velocity -= self.momentum
         elif dir == 'down':
@@ -19,7 +19,7 @@ class Ship():
             raise Exception("Error: Invalid direction")
         
         self.check_vel_bounds()
-        self.pos += self.velocity * dt
+        self.pos += self.velocity * 0.016
         self.check_pos_bounds()
     
     def check_vel_bounds(self):
@@ -45,7 +45,7 @@ class Pipe():
         self.window_height = window_height
         self.pos = window_width
         self.width = window_width * 0.1
-        self.gap = 200
+        self.gap = 350
         self.topend = random.randint(40, window_height - (self.gap + 40))
         self.bottomend = self.topend + self.gap
         self.toprect = pygame.Rect(self.pos, 0, self.width, self.topend)

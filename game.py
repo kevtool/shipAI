@@ -5,21 +5,12 @@ from algorithm import Algorithm
 
 class Game():
     def __init__(self):
-        pygame.init()
         self.window_width = 1280
         self.window_height = 720
 
-        # screen, clock
-        self.screen = pygame.display.set_mode((self.window_width, self.window_height))
-        self.clock = pygame.time.Clock()
-        self.running = True
-
-        # font
-        self.font = pygame.freetype.SysFont("Arial", 24)
-
         # player
-        self.player = Ship(self.screen.get_height())
-        self.player_pos = pygame.Vector2(self.screen.get_width() / 4, self.screen.get_height() - self.player.radius)
+        self.player = Ship(self.window_height)
+        self.player_pos = pygame.Vector2(self.window_width / 4, self.window_height - self.player.radius)
 
         # pipes
         self.pipetick = 0
@@ -33,16 +24,28 @@ class Game():
         self.prev_action = None
         self.changes = 0
 
+    def initiate_pygame(self):
+        pygame.init()
+
+        # screen, clock
+        self.screen = pygame.display.set_mode((self.window_width, self.window_height))
+        self.clock = pygame.time.Clock()
+        self.running = True
+
+        # font
+        self.font = pygame.freetype.SysFont("Arial", 24)
+
     def add_pipe(self):
-        pipe = Pipe(self.screen.get_width(), self.screen.get_height())
+        pipe = Pipe(self.window_width, self.window_height)
         self.pipes.append(pipe)
 
-    def update_pipes(self):
+    def update_pipes(self, render=True):
         for i, pipe in enumerate(self.pipes):
             pipe.update_pos()
 
-            pygame.draw.rect(self.screen, "black", pipe.toprect)
-            pygame.draw.rect(self.screen, "black", pipe.botrect)
+            if render == True:
+                pygame.draw.rect(self.screen, "black", pipe.toprect)
+                pygame.draw.rect(self.screen, "black", pipe.botrect)
 
 
         for i, pipe in enumerate(self.pipes):
@@ -63,7 +66,7 @@ class Game():
 
     def get_nearest_pipe_info(self):
         if len(self.pipes) <= 0:
-            return 0, self.screen.get_height(), self.screen.get_width()    
+            return 0, self.window_height, self.window_width
 
         for pipe in self.pipes:
             if pipe.pos + pipe.width > self.player_pos.x:
@@ -95,12 +98,13 @@ class Game():
     def normalize_values(self, *params):
         return [p / self.window_width for p in params]
     
-    def run(self, iters, mode='human', brain=None):
+    def run(self, iters, mode='human', brain=None, game_speed=500):
+        self.initiate_pygame()
         scores = []
         dir_changes = []
 
-        dt = 0
-        game_speed = 60
+        if mode == 'human':
+            game_speed = 60
 
         for _ in range(iters):
             while True:
@@ -124,9 +128,9 @@ class Game():
                     raise Exception("Error: Invalid mode")
 
                 if action:
-                    self.player.update_pos('up', dt)
+                    self.player.update_pos('up')
                 else:
-                    self.player.update_pos('down', dt)
+                    self.player.update_pos('down')
 
                 if self.prev_action != None:
                     if self.prev_action != action:
@@ -150,8 +154,52 @@ class Game():
                 self.font.render_to(self.screen, (10, 40), "Highscore: {}".format(self.highscore), (255, 255, 255))
                 pygame.display.flip()
 
-                if self.check_hit(self.player_pos):
-                    pygame.time.wait(500)
+                if self.check_hit(self.player_pos) or self.score > 100000:
+                    pygame.time.wait(int(30000 / game_speed))
+                    scores.append(self.score)
+                    self.update_score()
+                    dir_changes.append(self.changes)
+
+                    self.reset()
+                    break                    
+                
+                self.clock.tick(game_speed)
+
+        return scores, dir_changes
+    
+    def run_no_render(self, iters, brain=None):
+        scores = []
+        dir_changes = []
+
+        for _ in range(iters):
+            while True:
+                nearest_pipe_topend, nearest_pipe_bottomend, nearest_pipe_x = self.get_nearest_pipe_info()
+                action = (brain.forward(self.normalize_values(self.player_pos.y, nearest_pipe_topend, nearest_pipe_bottomend, nearest_pipe_x)) > 0)
+
+                if action:
+                    self.player.update_pos('up')
+                else:
+                    self.player.update_pos('down')
+
+                if self.prev_action != None:
+                    if self.prev_action != action:
+                        self.changes += 1
+                    
+                    
+                self.prev_action = action
+                
+                self.player_pos.y = self.player.pos
+                
+                self.pipetick += 1
+                if self.pipetick % 150 == 0:
+                    self.add_pipe()
+                    self.pipetick = 0
+
+                self.score += 1
+                
+                self.update_pipes(render=False)
+
+                if self.check_hit(self.player_pos) or self.score > 100000:
                     scores.append(self.score)
                     self.update_score()
                     dir_changes.append(self.changes)
@@ -159,6 +207,4 @@ class Game():
                     self.reset()
                     break
                 
-                dt = self.clock.tick(game_speed) / 1000
-
         return scores, dir_changes
