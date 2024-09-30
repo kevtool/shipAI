@@ -6,8 +6,7 @@ This project uses genetic AI and Neural Networks to learn to play a variation of
 ______
 #### Example
 
-![350-pixel gap](example_gap350.gif)
-Work in progress.
+![350-pixel gap](assets/example_gap350.gif)
 
 _______
 #### Process
